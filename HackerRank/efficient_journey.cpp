@@ -17,6 +17,7 @@ struct Edge
     Node *start;
     Node *end;
     int weight;
+    int fuel_left;
 };
 
 struct Graph
