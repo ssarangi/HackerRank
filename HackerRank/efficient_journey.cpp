@@ -126,7 +126,8 @@ void TestCase::create_connections()
 
         for (int node_id = start_node_id; node_id < end_node_id; ++node_id)
         {
-            
+            // Connect the nodes.
+
         }
     }
 }
