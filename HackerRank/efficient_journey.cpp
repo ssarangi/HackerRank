@@ -2,23 +2,20 @@
 #include <vector>
 #include <iostream>
 #include <queue>
+#include <unordered_map>
 
 struct Edge;
 
 struct Node
 {
     int id;
-    int subid;
-    std::vector<Edge*> edges;
+    int weight;
+    int cost;
+    int fuel_left;
+    int fuel_filled;
+    std::vector<Node*> nodes;
 };
 
-struct Edge
-{
-    Node *start;
-    Node *end;
-    int weight;
-    int fuel_left;
-};
 
 struct Graph
 {
@@ -27,6 +24,7 @@ struct Graph
     int start_node;
     int end_node;
 
+    std::unordered_map<unsigned int, std::vector<Node*>> nodes_at_id;
     void dijkstra();
 };
 
@@ -55,9 +53,37 @@ struct TestCase
 
     void execute();
     void create_graph();
+    Node* create_node(Node *parent, int node_id, int units_filled, int units_req, int cost_per_unit, int current_cost, int end_node);
+    void create_connections();
 
     std::vector<Graph*> graphs;
 };
+
+//Node* TestCase::create_node(Node *parent, int node_id, int units_filled, int unit_req, int cost_per_unit, int current_cost, int end_node)
+//{
+//    if (node_id > end_node)
+//        return nullptr;
+//
+//    Node *new_node = new Node();
+//    new_node->id = node_id;
+//    new_node->cost = units_filled * cost_per_unit;
+//    new_node->fuel_left = units_filled - unit_req;
+//
+//    printf("Creating Node: %d -- Units Filled: %d -- Units Req: %d -- Units Left: %d -- Cost: %d\n", node_id, units_filled, unit_req, new_node->fuel_left, new_node->cost);
+//
+//    if (parent != nullptr)
+//        parent->nodes.push_back(new_node);
+//    
+//    int next_units_req = fuel_price[node_id].first;
+//    int next_cost_per_unit = fuel_price[node_id].second;
+//
+//    for (int units_can_be_filled = C; units_can_be_filled >= next_units_req; --units_can_be_filled)
+//    {
+//        create_node(new_node, node_id + 1, units_can_be_filled, next_units_req, next_cost_per_unit, new_node->cost, end_node);
+//    }
+//
+//    return new_node;
+//}
 
 void TestCase::create_graph()
 {
@@ -67,33 +93,20 @@ void TestCase::create_graph()
         
         int start_node_id = edges[i].first;
         int end_node_id = edges[i].second;
+    
+        // Node *root = create_node(nullptr, start_node_id, 0, 0, 0, 0, end_node_id);
+        // Gas filled up at each node
 
-        g->start_node = start_node_id;
-        g->end_node = end_node_id;
-
-        for (int j = start_node_id; j < end_node_id; ++j)
+        for (int i = start_node_id; i < end_node_id; ++i)
         {
-            Node *pNode = new Node();
-            pNode->id = j;
-            g->nodes.push_back(pNode);
-        }
+            g->nodes_at_id[i].clear();
 
-        for (int j = start_node_id; j < end_node_id; ++j)
-        {
-            int units_req = fuel_price[j].first;
-            int cost_per_unit = fuel_price[j].second;
-
-            Node *start_node = new Node();
-            start_node->id = start_node_id;
-
-            for (int k = units_req; k <= C; ++k)
+            for (int fuel_units_filled = 0; fuel_units_filled <= C; ++fuel_units_filled)
             {
-                Node *end_node = g->nodes[j + 1];
-                Edge *edge = new Edge();
-                edge->start = start_node;
-                edge->end = end_node;
-                edge->weight = k * cost_per_unit;
-                start_node->edges.push_back(edge);
+                Node *n = new Node();
+                n->id = i;
+                n->fuel_filled = fuel_units_filled;
+                g->nodes_at_id[i].push_back(n);
             }
         }
 
@@ -101,8 +114,27 @@ void TestCase::create_graph()
     }
 }
 
+void TestCase::create_connections()
+{
+    for (int i = 0; i < edges.size(); ++i)
+    {
+        Graph *g = graphs[i];
+
+        int start_node_id = edges[i].first;
+        int end_node_id = edges[i].second;
+
+
+        for (int node_id = start_node_id; node_id < end_node_id; ++node_id)
+        {
+            
+        }
+    }
+}
+
 void TestCase::execute()
 {
+    create_graph();
+
     for (int i = 0; i < graphs.size(); ++i)
     {
         // Execute this.
