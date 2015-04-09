@@ -2,13 +2,13 @@
 #include <vector>
 #include <iostream>
 #include <queue>
+#include <algorithm>
 
 struct Edge;
 
 struct Node
 {
     int id;
-    int weight;
     int cost;
     int fuel_left;
     std::vector<Node*> nodes;
@@ -21,24 +21,47 @@ struct Graph
 
     int start_node;
     int end_node;
+    int num_nodes;
+    int min_cost;
+
+    Node* root;
+    Node* dummy_end_node;
 
     void dijkstra();
 };
 
 void Graph::dijkstra()
 {
-    int *distances = new int[end_node - start_node];
+    //std::queue<Node*> queue;
+    //queue.push(root);
 
-    for (int i = 0; i < end_node - start_node; ++i)
-        distances[i] = INT_MAX;
+    //int *distances = new int[num_nodes + 1];
 
-    std::queue<Node*> queue;
-    queue.push(nodes[start_node]);
+    //for (int i = 0; i < num_nodes; ++i)
+    //{
+    //    distances[i] = INT_MAX;
+    //}
 
-    while (!queue.empty())
-    {
+    //while (!queue.empty())
+    //{
+    //    Node *node = queue.front();
+    //    queue.pop();
 
-    }
+    //    // Look at all the paths from this node
+    //    int child_nodes = node->nodes.size();
+    //    int min_cost = INT_MAX;
+    //    Node* next_node = nullptr;
+    //    for (int i = 0; i < child_nodes; ++i)
+    //    {
+    //        // Find the minimum cost path
+    //        if (node->nodes[i]->cost <= distances[node->nodes[i]->cost])
+    //        {
+    //            min_cost = node->nodes[i]->cost;
+    //            next_node = node->nodes[i];
+    //            distances[node->nodes[i]->id] = min_cost;
+    //        }
+    //    }
+    //}
 }
 
 struct TestCase
@@ -50,32 +73,41 @@ struct TestCase
 
     void execute();
     void create_graph();
-    Node* create_node(Node *parent, int node_id, int units_filled, int units_req, int cost_per_unit, int current_cost, int end_node);
+    Node* create_node(Graph* g, Node *parent, int node_id, int units_filled, int units_req, int current_cost, int end_node);
 
     std::vector<Graph*> graphs;
 };
 
-Node* TestCase::create_node(Node *parent, int node_id, int units_filled, int unit_req, int cost_per_unit, int current_cost, int end_node)
+Node* TestCase::create_node(Graph *g, Node *parent, int node_id, int units_filled, int unit_req, int current_cost, int end_node)
 {
-    if (node_id > end_node)
-        return nullptr;
-
     Node *new_node = new Node();
-    new_node->id = node_id;
-    new_node->cost = units_filled * cost_per_unit;
+    new_node->id = g->num_nodes;
+    new_node->cost = current_cost;
     new_node->fuel_left = units_filled - unit_req;
-
-    printf("Creating Node: %d -- Units Filled: %d -- Units Req: %d -- Units Left: %d -- Cost: %d\n", node_id, units_filled, unit_req, new_node->fuel_left, new_node->cost);
+    ++g->num_nodes;
 
     if (parent != nullptr)
         parent->nodes.push_back(new_node);
-    
+ 
+    if (node_id >= end_node)
+    {
+        new_node->nodes.push_back(g->dummy_end_node);
+        if (g->min_cost > current_cost)
+            g->min_cost = current_cost;
+
+        // printf("Creating Node: %d -- Units Filled: %d -- Units Req: %d -- Units Left: %d -- Cost: %d\n", node_id, units_filled, unit_req, new_node->fuel_left, new_node->cost);
+        return nullptr;
+    }
+
     int next_units_req = fuel_price[node_id].first;
     int next_cost_per_unit = fuel_price[node_id].second;
 
     for (int units_can_be_filled = C; units_can_be_filled >= next_units_req; --units_can_be_filled)
     {
-        create_node(new_node, node_id + 1, units_can_be_filled, next_units_req, next_cost_per_unit, new_node->cost, end_node);
+        int units_actually_filled = units_can_be_filled - new_node->fuel_left;
+        int cost = new_node->cost + units_actually_filled * next_cost_per_unit;
+
+        create_node(g, new_node, node_id + 1, units_can_be_filled, next_units_req, cost, end_node);
     }
 
     return new_node;
@@ -86,25 +118,26 @@ void TestCase::create_graph()
     for (int i = 0; i < edges.size(); ++i)
     {
         Graph *g = new Graph();
-        
+        g->num_nodes = 0;
+        g->min_cost = INT_MAX;
+
         int start_node_id = edges[i].first;
         int end_node_id = edges[i].second;
     
-        Node *root = create_node(nullptr, start_node_id, 0, 0, 0, 0, end_node_id);
+        Node *root = create_node(g, nullptr, start_node_id, 0, 0, 0, end_node_id);
+        Node *dummy_end_node = new Node();
+        dummy_end_node->cost = 0;
 
+        g->root = root;
+        g->dummy_end_node = dummy_end_node;
         graphs.push_back(g);
+        std::cout << g->min_cost << std::endl;
     }
 }
 
 void TestCase::execute()
 {
     create_graph();
-
-    for (int i = 0; i < graphs.size(); ++i)
-    {
-        // Execute this.
-        graphs[i]->dijkstra();
-    }
 }
 
 class EfficientJourney
@@ -154,8 +187,6 @@ void EfficientJourney::read_input()
 
         m_testcases.push_back(test_case);
     }
-
-    std::cout << "Num Test cases: " << test_cases << std::endl;
 }
 
 void EfficientJourney::execute()
