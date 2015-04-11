@@ -1,7 +1,7 @@
 #include <iostream>
 #include <algorithm>
 #include <vector>
-#include <unordered_map>
+#include <map>
 #include <limits.h>
 
 struct Node
@@ -9,7 +9,7 @@ struct Node
     int id;
     bool has_machine;
     Node* parent;
-    std::unordered_map<Node*, int> edges;
+    std::map<Node*, int> edges;
 
     Node() :
         has_machine(false),
@@ -60,7 +60,7 @@ public:
         }
     }
 
-    void dfs(Node *root_node, Node *curr_node, Node *prev_node, Node *node_to_be_deleted_1, Node* node_to_be_deleted_2, int mintime, int& total_time, std::vector<Node*>& visited, std::unordered_map<Node*, Node*>& deleted_pair)
+    void dfs(Node *root_node, Node *curr_node, Node *prev_node, Node *node_to_be_deleted_1, Node* node_to_be_deleted_2, int mintime, int& total_time, std::vector<Node*>& visited, std::map<Node*, Node*>& deleted_pair)
     {
         if (std::find(visited.begin(), visited.end(), curr_node) != visited.end())
             return;
@@ -125,7 +125,7 @@ public:
         for (int i = 0; i < machine_locations.size(); ++i)
         {
             std::vector<Node*> visited;
-            std::unordered_map<Node*, Node*> deleted_pair;
+            std::map<Node*, Node*> deleted_pair;
 
             // printf("Starting with root node: %d\n", nodes[machine_locations[i]]->id);
             dfs(nodes[machine_locations[i]], nodes[machine_locations[i]], nullptr, nullptr, nullptr, INT_MAX, total_time, visited, deleted_pair);
@@ -144,7 +144,7 @@ public:
     }
 
 private:
-    std::unordered_map<int, Node*> nodes;
+    std::map<int, Node*> nodes;
     std::vector<int> machine_locations;
     int N;
     int K;
