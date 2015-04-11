@@ -8,11 +8,13 @@ struct Node
 {
     int id;
     bool has_machine;
+    Node* parent;
     std::unordered_map<Node*, int> edges;
 
     Node() :
         has_machine(false),
-        id(-1)
+        id(-1),
+        parent(nullptr)
     {}
 };
 
@@ -49,26 +51,52 @@ public:
         }
     }
 
+    void goto_parent(Node* leaf)
+    {
+        while (leaf != nullptr && leaf->parent != nullptr)
+        {
+            printf("%d ------> %d with weight %d\n", leaf->id, leaf->parent->id, leaf->parent->edges[leaf]);
+            leaf = leaf->parent;
+        }
+    }
+
     void dfs(Node *root_node, Node *curr_node, Node *prev_node, Node *node_to_be_deleted_1, Node* node_to_be_deleted_2, int mintime, int& total_time, std::vector<Node*>& visited, std::unordered_map<Node*, Node*>& deleted_pair)
     {
         if (std::find(visited.begin(), visited.end(), curr_node) != visited.end())
             return;
 
+        if (prev_node != nullptr)
+            curr_node->parent = prev_node;
+
         if (curr_node->has_machine && root_node != curr_node)
         {
+            // goto_parent(curr_node);
+            // printf("-------------------------------------\n");
+
             // We need to terminate this here and see if we can destroy a road between these 2
             if (curr_node->edges[prev_node] < mintime)
             {
                 // Destroy this edge
                 deleted_pair[curr_node] = prev_node;
                 total_time += curr_node->edges[prev_node];
+                // printf("Edge deleted: %d ----- %d\n", curr_node->id, prev_node->id);
             }
             else
             {
-                // A previous node has to be deleted.
-                deleted_pair[node_to_be_deleted_1] = node_to_be_deleted_2;
-                total_time += curr_node->edges[prev_node];
+                if (deleted_pair.find(node_to_be_deleted_1) == deleted_pair.end())
+                {
+                    if (deleted_pair[node_to_be_deleted_1] != node_to_be_deleted_2)
+                    {
+                        // A previous node has to be deleted.
+                        deleted_pair[node_to_be_deleted_1] = node_to_be_deleted_2;
+                        total_time += node_to_be_deleted_1->edges[node_to_be_deleted_2];
+                        // printf("Edge deleted: %d ----- %d\n", node_to_be_deleted_1->id, node_to_be_deleted_2->id);
+                    }
+                }
+
+                // std::cout << "Total time: " << total_time << std::endl;
             }
+            // printf("-------------------------------------\n");
         }
         else
         {
@@ -92,15 +120,21 @@ public:
     void solve()
     {
         int total_time = 0;
+        int num_cuts = 0;
         // std::reverse(machine_locations.begin(), machine_locations.end());
         for (int i = 0; i < machine_locations.size(); ++i)
         {
             std::vector<Node*> visited;
             std::unordered_map<Node*, Node*> deleted_pair;
+
+            // printf("Starting with root node: %d\n", nodes[machine_locations[i]]->id);
             dfs(nodes[machine_locations[i]], nodes[machine_locations[i]], nullptr, nullptr, nullptr, INT_MAX, total_time, visited, deleted_pair);
+
+            num_cuts += deleted_pair.size();
 
             for (auto node1_node2_pair : deleted_pair)
             {
+                // printf("Deleting edge: %d -----> %d with weight %d\n", node1_node2_pair.first->id, node1_node2_pair.second->id, node1_node2_pair.first->edges[node1_node2_pair.second]);
                 node1_node2_pair.first->edges.erase(node1_node2_pair.second);
                 node1_node2_pair.second->edges.erase(node1_node2_pair.first);
             }
