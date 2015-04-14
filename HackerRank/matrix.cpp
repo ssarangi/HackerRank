@@ -25,6 +25,8 @@ public:
     {
         std::cin >> N >> K;
 
+        nodes.reserve(N);
+        nodes.resize(N);
         for (int i = 0; i < N - 1; ++i)
         {
             int city1, city2, time;
@@ -41,6 +43,8 @@ public:
             nodes[city1]->id = city1;
             nodes[city2]->id = city2;
         }
+
+        machine_locations.reserve(K);
 
         for (int i = 0; i < K; ++i)
         {
@@ -144,7 +148,8 @@ public:
     }
 
 private:
-    std::map<int, Node*> nodes;
+    // std::map<int, Node*> nodes;
+    std::vector<Node*> nodes;
     std::vector<int> machine_locations;
     int N;
     int K;
@@ -152,7 +157,7 @@ private:
 
 int main(void)
 {
-    Matrix matrix;
-    matrix.read_input();
-    matrix.solve();
+        Matrix matrix;
+        matrix.read_input();
+        matrix.solve();
 }
