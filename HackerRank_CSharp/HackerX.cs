@@ -6,6 +6,11 @@ using System.Threading.Tasks;
 
 namespace HackerRank_CSharp
 {
+    struct Node
+    {
+
+    }
+
     class HackerX
     {
         void ReadInput()
@@ -26,11 +31,11 @@ namespace HackerRank_CSharp
 
         }
 
-        static void Main(string[] args)
-        {
-            HackerX hackerX = new HackerX();
-            hackerX.ReadInput();
-            hackerX.Solve();
-        }
+        //static void Main(string[] args)
+        //{
+        //    HackerX hackerX = new HackerX();
+        //    hackerX.ReadInput();
+        //    hackerX.Solve();
+        //}
     }
 }
